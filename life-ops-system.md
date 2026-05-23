@@ -11,7 +11,7 @@ The mental model is GitHub Issues + PRs applied to personal life. Capture is an 
 ## Architecture
 
 ```
-~/iCloud Drive/todos/          ← local folder, iCloud syncs to phone/tablet
+~/iCloud Drive/lifeops_todos/          ← local folder, iCloud syncs to phone/tablet
   └── (git repo)               ← also pushed to a private GitHub repo
 
 Local machine (macOS)
@@ -22,7 +22,7 @@ Local machine (macOS)
 
 Cloudflare Tunnel              ← todos-mcp.<your-domain> → local
 GitHub (private repo)          ← todos/*.md + Issues + PRs
-Obsidian (Mac + iOS)           ← visual view, same ~/todos/ folder
+Obsidian (Mac + iOS)           ← visual view, same folder
 ```
 
 ---
@@ -30,7 +30,7 @@ Obsidian (Mac + iOS)           ← visual view, same ~/todos/ folder
 ## File Structure
 
 ```
-~/iCloud Drive/todos/
+~/iCloud Drive/lifeops_todos/
   <user-a>/
     inbox/          ← unprocessed captures
     active/
@@ -340,7 +340,7 @@ cloudflared tunnel run todos-mcp
 
 ## Obsidian Setup
 
-1. Create vault pointing at `~/iCloud Drive/todos/`
+1. Create vault pointing at `~/iCloud Drive/lifeops_todos/`
 2. Install plugins:
    - **Kanban** — board view per namespace
    - **Dataview** — query todos by frontmatter fields
@@ -410,9 +410,9 @@ entirely through chat.
 ## Notes for implementers
 
 - Use `uv` for dependency management throughout
-- All file paths relative to `~/iCloud Drive/todos/` — configurable via env var `TODOS_DIR`
+- All file paths relative to `~/iCloud Drive/lifeops_todos/` — configurable via env var `TODOS_DIR`
 - GitHub token via env var `GITHUB_TOKEN`
-- GitHub data repo via env var `TODOS_REPO` (e.g. `<your-user>/todos`)
+- GitHub data repo via env var `TODOS_REPO` (e.g. `<your-user>/lifeops_todos`) — a separate, private repo, distinct from the public `lifeops` code repo
 - Anthropic API key via env var `ANTHROPIC_API_KEY`
 - Default user via env var `TODOS_USER` (e.g. one of your household users) — MCP server uses this to scope `get_my_queue()` and default `owner` on capture
 - Household context via `OWNER_CONTEXT_FILE` (default `~/.config/lifeops/owner_context.md`) — local-only, never committed

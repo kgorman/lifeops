@@ -91,6 +91,19 @@ MCP tools, grouped by Covey concept:
 
 ---
 
+## Two repos, one system
+
+Life Ops uses **two separate GitHub repos**, intentionally:
+
+| Repo | Visibility | Holds | Created by |
+|------|------------|-------|------------|
+| `lifeops` (this one) | public, open source | the code — MCP server, agent, scripts, docs | cloned |
+| `lifeops_todos` *(name is a convention)* | **private** | your actual `.md` items, Issues, PRs | `make data-repo` |
+
+The code repo never contains your data. The data repo never contains code. They are bound only by the `TODOS_REPO` env var at runtime. You can fork `lifeops`, share it, file PRs against it — your `lifeops_todos` stays private.
+
+---
+
 ## Install
 
 > Requires macOS (for launchd) and a GitHub account. `uv` is installed for you if missing.
@@ -109,7 +122,7 @@ Then:
 $EDITOR ~/.config/lifeops/env              # GITHUB_TOKEN, ANTHROPIC_API_KEY, TODOS_REPO, TODOS_USER
 $EDITOR ~/.config/lifeops/owner_context.md # household background for the agent
 
-TODOS_REPO=<your-user>/todos make data-repo   # creates the data repo + label taxonomy
+TODOS_REPO=<your-user>/lifeops_todos make data-repo   # creates the data repo + label taxonomy
 make doctor                                    # verify the install
 ```
 
@@ -216,7 +229,7 @@ All runtime configuration is via environment variables — nothing personal is c
 | Variable | Purpose |
 |----------|---------|
 | `TODOS_DIR` | Local folder holding the markdown data. |
-| `TODOS_REPO` | Backing GitHub repo, e.g. `your-user/todos`. |
+| `TODOS_REPO` | Backing GitHub repo (private), e.g. `your-user/lifeops_todos`. Distinct from the public `lifeops` code repo. |
 | `TODOS_OWNERS` | Comma-separated owner namespaces, e.g. `alice,bob`. `shared` is always included. |
 | `TODOS_USER` | Default identity for the MCP server — must be one of `TODOS_OWNERS`. |
 | `GITHUB_TOKEN` | PAT with `repo` scope. |

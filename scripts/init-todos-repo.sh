@@ -9,11 +9,11 @@ if ! command -v gh >/dev/null 2>&1; then
   exit 1
 fi
 
-TODOS_DIR="${TODOS_DIR:-$HOME/iCloud Drive/todos}"
+TODOS_DIR="${TODOS_DIR:-$HOME/iCloud Drive/lifeops_todos}"
 TODOS_REPO="${TODOS_REPO:-}"
 
 if [ -z "$TODOS_REPO" ]; then
-  echo "TODOS_REPO is not set (e.g. your-user/todos)"
+  echo "TODOS_REPO is not set (e.g. your-user/lifeops_todos)"
   exit 1
 fi
 
@@ -46,10 +46,11 @@ EOF
 
 # README inside the data repo
 cat > README.md <<'EOF'
-# todos
+# lifeops_todos
 
-Backing data repo for Life Ops. Plain markdown, one file per item.
-See life-ops-system.md in the Life Ops repo for the full spec.
+Private backing data repo for [Life Ops](https://github.com/kgorman/lifeops).
+Plain markdown, one file per item. The code lives in the public `lifeops`
+repo; this repo holds only data.
 EOF
 
 git add -A

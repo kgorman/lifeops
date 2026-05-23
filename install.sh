@@ -67,7 +67,7 @@ uv python install 3.12 >/dev/null 2>&1 || true
 install_pkg() {
   local pkg="$1"
   say "installing $pkg"
-  ( cd "$LIFEOPS_DIR/$pkg" && uv venv --python 3.12 --quiet && uv pip install --quiet -e . )
+  ( cd "$LIFEOPS_DIR/$pkg" && uv venv --python 3.12 --quiet --allow-existing && uv pip install --quiet -e . )
 }
 
 install_pkg todos-mcp
@@ -122,7 +122,7 @@ Next steps:
   1. Edit ${CONFIG_DIR}/env           (GITHUB_TOKEN, ANTHROPIC_API_KEY, TODOS_REPO, TODOS_USER)
   2. Edit ${CONFIG_DIR}/owner_context.md  (household background for the agent)
   3. Create the data repo:
-       TODOS_REPO=<your-user>/todos ./scripts/init-todos-repo.sh
+       TODOS_REPO=<your-user>/lifeops_todos ./scripts/init-todos-repo.sh
   4. Sanity check:
        ./scripts/doctor.sh
   5. (Optional) Cloudflare Tunnel:

@@ -37,7 +37,12 @@ class GitOps:
             log.warning("not a git repo at %s, skipping pull", self.root)
             return
         try:
-            self.repo.remotes.origin.pull(rebase=True)
+            origin = self.repo.remotes["origin"]
+        except (IndexError, AttributeError):
+            log.debug("no origin remote at %s, skipping pull", self.root)
+            return
+        try:
+            origin.pull(rebase=True)
         except GitCommandError as e:
             log.error("git pull failed: %s", e)
             self._resolve_conflicts()
@@ -59,7 +64,12 @@ class GitOps:
             return False
         repo.index.commit(message)
         try:
-            repo.remotes.origin.push()
+            origin = repo.remotes["origin"]
+        except (IndexError, AttributeError):
+            log.debug("no origin remote, skipping push")
+            return True
+        try:
+            origin.push()
         except GitCommandError as e:
             log.error("push failed: %s", e)
             return False
