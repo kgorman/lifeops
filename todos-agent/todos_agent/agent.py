@@ -35,16 +35,17 @@ load_dotenv(Path.home() / ".config" / "lifeops" / "env")
 
 log = logging.getLogger("todos-agent")
 
-# Try the SDK in two common shapes — different versions ship slightly different APIs.
+# Use the official Claude Agent SDK. It spawns the local `claude` CLI as a
+# subprocess and inherits its OAuth session — no ANTHROPIC_API_KEY required
+# when the user has already run `claude login`. (Previously published as
+# claude-code-sdk; the package has been renamed.)
 try:
-    from claude_code_sdk import ClaudeCodeOptions, query  # type: ignore
+    from claude_agent_sdk import ClaudeAgentOptions, query  # type: ignore
     _SDK_STYLE = "query"
-except Exception:  # pragma: no cover - import fallback
-    try:
-        from claude_code_sdk import Client  # type: ignore
-        _SDK_STYLE = "client"
-    except Exception:
-        _SDK_STYLE = None
+except Exception:  # pragma: no cover
+    _SDK_STYLE = None
+    ClaudeAgentOptions = None  # type: ignore
+    query = None  # type: ignore
 
 
 DEFAULT_PROMPT_TEMPLATE = """You are working on a personal task for {owner}.
@@ -82,20 +83,21 @@ class AgentConfig:
     todos_dir: Path
     todos_repo: str
     github_token: str
-    anthropic_key: str
     owner_context_file: Path | None
     log_dir: Path
     max_items_per_run: int = 8
 
     @classmethod
     def from_env(cls) -> "AgentConfig":
+        # Note: no ANTHROPIC_API_KEY here — auth is delegated to the local
+        # `claude` CLI via the Claude Agent SDK. If the env var is set, the
+        # SDK will pick it up directly, but the agent does not require it.
         return cls(
             todos_dir=Path(
-                os.environ.get("TODOS_DIR", str(Path.home() / "iCloud Drive" / "todos"))
+                os.environ.get("TODOS_DIR", str(Path.home() / "iCloud Drive" / "lifeops_todos"))
             ).expanduser(),
             todos_repo=os.environ.get("TODOS_REPO", ""),
             github_token=os.environ.get("GITHUB_TOKEN", ""),
-            anthropic_key=os.environ.get("ANTHROPIC_API_KEY", ""),
             owner_context_file=_resolve_optional_path(
                 os.environ.get("OWNER_CONTEXT_FILE")
             ),
@@ -266,32 +268,33 @@ def build_prompt(*, title: str, owner: str, context: str, instructions: str,
 
 
 async def run_agent(prompt: str) -> str:
-    """Invoke the Claude Code SDK and return the agent's final text output."""
-    if _SDK_STYLE == "query":
-        options = ClaudeCodeOptions(
-            permission_mode="acceptEdits",
-            allowed_tools=["WebSearch", "WebFetch", "Read", "Grep", "Glob"],
+    """Invoke the Claude Agent SDK and return the agent's final text output.
+
+    Uses the local `claude` CLI's OAuth session — no API key required.
+    Make sure `claude login` has been run on the machine.
+    """
+    if _SDK_STYLE != "query":
+        raise RuntimeError(
+            "claude-agent-sdk not available — install it in the todos-agent venv"
         )
-        chunks: list[str] = []
-        async for message in query(prompt=prompt, options=options):
-            text = getattr(message, "text", None) or getattr(message, "content", None)
-            if isinstance(text, str):
-                chunks.append(text)
-            elif isinstance(text, list):
-                for block in text:
-                    inner = getattr(block, "text", None)
-                    if isinstance(inner, str):
-                        chunks.append(inner)
-        return "\n".join(chunks).strip()
 
-    if _SDK_STYLE == "client":
-        async with Client() as client:  # type: ignore
-            resp = await client.send(prompt)
-            return str(resp)
-
-    raise RuntimeError(
-        "claude-code-sdk not available — install it in the todos-agent venv"
+    options = ClaudeAgentOptions(
+        permission_mode="acceptEdits",
+        allowed_tools=["WebSearch", "WebFetch", "Read", "Grep", "Glob"],
     )
+    chunks: list[str] = []
+    async for message in query(prompt=prompt, options=options):
+        # The SDK yields typed message objects. We're interested in the
+        # assistant's final text; pull out any TextBlock content.
+        content = getattr(message, "content", None)
+        if isinstance(content, str):
+            chunks.append(content)
+        elif isinstance(content, list):
+            for block in content:
+                text = getattr(block, "text", None)
+                if isinstance(text, str):
+                    chunks.append(text)
+    return "\n".join(chunks).strip()
 
 
 # ---------- section extraction ----------

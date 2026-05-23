@@ -48,6 +48,7 @@ say "checking prerequisites"
 
 if ! have git;    then fail "git is required (xcode-select --install)"; fi
 if ! have gh;     then warn "gh CLI not found — install with: brew install gh (needed for the data repo + label setup)"; fi
+if ! have claude; then warn "claude CLI not found — install Claude Code and run 'claude login'. The agent loop uses your CLI session instead of an API key."; fi
 
 if ! have uv; then
   say "installing uv"
@@ -119,14 +120,15 @@ cat <<EOF
 ${c_green}install complete${c_reset}
 
 Next steps:
-  1. Edit ${CONFIG_DIR}/env           (GITHUB_TOKEN, ANTHROPIC_API_KEY, TODOS_REPO, TODOS_USER)
+  1. Edit ${CONFIG_DIR}/env           (GITHUB_TOKEN, TODOS_REPO, TODOS_USER)
   2. Edit ${CONFIG_DIR}/owner_context.md  (household background for the agent)
-  3. Create the data repo:
+  3. Run 'claude login' once — the agent uses your CLI auth, not an API key
+  4. Create the data repo:
        TODOS_REPO=<your-user>/lifeops_todos ./scripts/init-todos-repo.sh
-  4. Sanity check:
+  5. Sanity check:
        ./scripts/doctor.sh
-  5. (Optional) Cloudflare Tunnel:
+  6. (Optional) Cloudflare Tunnel:
        ./scripts/setup-tunnel.sh
-  6. Wire the MCP endpoint into your Claude client.
+  7. Wire the MCP endpoint into your Claude client.
 
 EOF

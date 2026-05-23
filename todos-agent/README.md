@@ -1,6 +1,11 @@
 # todos-agent
 
-Hourly Claude Code SDK loop that works delegated Life Ops todos.
+Hourly Claude Agent SDK loop that works delegated Life Ops todos.
+
+**Auth:** the agent uses the local `claude` CLI's OAuth session (via the
+[Claude Agent SDK](https://pypi.org/project/claude-agent-sdk/)). Run
+`claude login` once on the machine — **no `ANTHROPIC_API_KEY` is required.**
+Your Pro/Max/Team subscription is what powers the agent loop.
 
 ## Install
 

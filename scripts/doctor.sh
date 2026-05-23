@@ -20,6 +20,7 @@ section "Prerequisites"
 have git    && ok "git $(git --version | awk '{print $3}')"     || bad "git missing"
 have uv     && ok "uv  $(uv --version | awk '{print $2}')"       || bad "uv missing — run ./install.sh"
 have gh     && ok "gh  $(gh --version | head -1 | awk '{print $3}')" || warn "gh CLI missing (only needed for data-repo init + label sync)"
+have claude && ok "claude CLI $(claude --version 2>&1 | head -1)" || warn "claude CLI missing — agent loop needs it for auth (install Claude Code + 'claude login')"
 have cloudflared && ok "cloudflared $(cloudflared --version 2>&1 | head -1)" || warn "cloudflared missing (only needed for remote MCP)"
 
 # ---------- venvs ----------
@@ -43,7 +44,7 @@ if [ -f "$CONFIG" ]; then
   ok "config file: $CONFIG"
   # shellcheck disable=SC1090
   set -a; . "$CONFIG"; set +a
-  for var in TODOS_DIR TODOS_REPO TODOS_USER GITHUB_TOKEN ANTHROPIC_API_KEY; do
+  for var in TODOS_DIR TODOS_REPO TODOS_USER GITHUB_TOKEN; do
     val="${!var:-}"
     if [ -n "$val" ]; then
       case "$var" in
@@ -54,6 +55,12 @@ if [ -f "$CONFIG" ]; then
       bad "$var is not set"
     fi
   done
+  # ANTHROPIC_API_KEY is optional — the agent uses local claude CLI auth.
+  if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    ok "ANTHROPIC_API_KEY set (will override CLI auth)"
+  else
+    ok "ANTHROPIC_API_KEY unset — using local claude CLI auth"
+  fi
 else
   bad "$CONFIG missing — run ./install.sh"
 fi

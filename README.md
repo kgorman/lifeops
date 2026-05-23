@@ -119,8 +119,9 @@ cd ~/code/lifeops
 Then:
 
 ```bash
-$EDITOR ~/.config/lifeops/env              # GITHUB_TOKEN, ANTHROPIC_API_KEY, TODOS_REPO, TODOS_USER
+$EDITOR ~/.config/lifeops/env              # GITHUB_TOKEN, TODOS_REPO, TODOS_USER
 $EDITOR ~/.config/lifeops/owner_context.md # household background for the agent
+claude login                               # one-time — the agent uses your CLI session, not an API key
 
 TODOS_REPO=<your-user>/lifeops_todos make data-repo   # creates the data repo + label taxonomy
 make doctor                                    # verify the install
@@ -233,7 +234,7 @@ All runtime configuration is via environment variables — nothing personal is c
 | `TODOS_OWNERS` | Comma-separated owner namespaces, e.g. `alice,bob`. `shared` is always included. |
 | `TODOS_USER` | Default identity for the MCP server — must be one of `TODOS_OWNERS`. |
 | `GITHUB_TOKEN` | PAT with `repo` scope. |
-| `ANTHROPIC_API_KEY` | Used by the agent loop. |
+| `ANTHROPIC_API_KEY` | **Optional.** The agent uses the Claude Agent SDK with your local `claude` CLI's OAuth session by default — leave blank unless you specifically want to pay per-token via the API. |
 | `MCP_PORT` | Local port the MCP server listens on. |
 | `OWNER_CONTEXT_FILE` | Local-only file describing household background for the agent. |
 
