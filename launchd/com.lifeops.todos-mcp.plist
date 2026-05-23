@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Life Ops MCP server. Install with scripts/install-launchd.sh, which fills
+  in $HOME and the repo root via envsubst.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.lifeops.todos-mcp</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__HOME__/.local/bin/uv</string>
+    <string>run</string>
+    <string>--directory</string>
+    <string>__LIFEOPS_DIR__/todos-mcp</string>
+    <string>todos-mcp</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>__HOME__/.local/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>__HOME__</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/logs/todos-mcp.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__HOME__/logs/todos-mcp-error.log</string>
+</dict>
+</plist>

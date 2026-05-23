@@ -1,0 +1,10 @@
+# Cloudflare Tunnel config for the Life Ops MCP server.
+# Copy to ~/.cloudflared/config.yml and fill in your tunnel ID + hostname.
+
+tunnel: todos-mcp
+credentials-file: ~/.cloudflared/<tunnel-id>.json
+
+ingress:
+  - hostname: todos-mcp.<your-domain>
+    service: http://localhost:8000
+  - service: http_status:404
