@@ -125,6 +125,90 @@ make uninstall  # remove launchd services
 
 ---
 
+## Wire it into a client
+
+The MCP server speaks two transports:
+
+- **stdio** — for clients running on the same machine. Cheapest, no network. The client launches the server as a subprocess.
+- **SSE over HTTPS** — for clients reaching in from elsewhere (`claude.ai`, ChatGPT). Cloudflare Tunnel exposes `localhost:8000` at a public hostname.
+
+### Claude Desktop (local, stdio)
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "lifeops": {
+      "command": "/Users/<you>/.local/bin/uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/<you>/code/lifeops/todos-mcp",
+        "todos-mcp"
+      ],
+      "env": { "MCP_TRANSPORT": "stdio" }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The Life Ops tools (`capture_todo`, `get_my_queue`, `weekly_review`, …) appear in the tool list.
+
+The server reads `TODOS_REPO`, `TODOS_USER`, `GITHUB_TOKEN`, etc. from `~/.config/lifeops/env` automatically — only `MCP_TRANSPORT` needs to be in the client config.
+
+### Claude Code (CLI, stdio)
+
+```bash
+claude mcp add lifeops \
+  --env MCP_TRANSPORT=stdio \
+  -- uv run --directory ~/code/lifeops/todos-mcp todos-mcp
+```
+
+Or hand-edit `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "lifeops": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--directory", "/Users/<you>/code/lifeops/todos-mcp", "todos-mcp"],
+      "env": { "MCP_TRANSPORT": "stdio" }
+    }
+  }
+}
+```
+
+### claude.ai (remote, via Cloudflare Tunnel)
+
+1. **Expose the server**:
+   ```bash
+   make tunnel    # creates the tunnel + ~/.cloudflared/config.yml
+   cloudflared tunnel route dns todos-mcp todos-mcp.<your-domain>
+   ```
+   Either run `cloudflared tunnel run todos-mcp` in a terminal or install it as a launchd service.
+2. **Add the connector**: claude.ai → Settings → Connectors → *Add custom connector* → paste `https://todos-mcp.<your-domain>/sse`.
+3. The Life Ops tools appear in your sidebar.
+
+### ChatGPT (remote, via Cloudflare Tunnel)
+
+Same tunnel as above, then in ChatGPT: Settings → Connectors → *Add MCP server* → URL `https://todos-mcp.<your-domain>/sse`. ChatGPT advertises and calls the tools the same way Claude does.
+
+### Security caveat — important
+
+The MCP server has **no built-in authentication**. Anyone who knows the tunnel URL can call its tools, which means anyone with that URL can read, create, mutate, and delete your todos and drive your GitHub repo.
+
+Before exposing the tunnel publicly, put something in front of it:
+
+- **Cloudflare Access** (zero-trust) — restrict by email / SSO. Free for personal use. Recommended.
+- **mTLS** at the tunnel — `cloudflared` supports it.
+- **A long, random hostname** is *not* sufficient by itself, but pairs reasonably with Access for defense in depth.
+
+For stdio (Claude Desktop / Claude Code on your own machine) this doesn't apply — there's no network surface.
+
+---
+
 ## Configuration
 
 All runtime configuration is via environment variables — nothing personal is checked into the repo.
